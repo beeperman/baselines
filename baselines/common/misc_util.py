@@ -75,6 +75,8 @@ def set_global_seeds(i):
         tf.set_random_seed(i)
     np.random.seed(i)
     random.seed(i)
+    from baselines.common.randseedfac import seeder
+    seeder.seed(i)
 
 
 def pretty_eta(seconds_left):

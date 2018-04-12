@@ -19,14 +19,15 @@ def train(env_id, num_timesteps, seed):
     # use single thread. on such a small problem, multithreading gives you a slowdown
     # this way, we can better use multiple cores for different experiments
     tf.Session(config=config).__enter__()
+    set_global_seeds(seed)
     def make_env():
         env = gym.make(env_id)
+        env.seed(seed)
         env = bench.Monitor(env, logger.get_dir())
         return env
     env = DummyVecEnv([make_env])
     env = VecNormalize(env)
 
-    set_global_seeds(seed)
     policy = MlpPolicy
     ppo2.learn(policy=policy, env=env, nsteps=2048, nminibatches=32,
         lam=0.95, gamma=0.99, noptepochs=10, log_interval=1,

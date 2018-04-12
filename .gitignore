@@ -6,6 +6,8 @@
 .DS_Store
 .idea
 
+baselines/ppo_valmod/logs
+
 # Setuptools distribution and build folders.
 /dist/
 /build
