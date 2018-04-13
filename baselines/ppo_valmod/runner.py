@@ -47,11 +47,13 @@ class Runner(object):
         last_values = self.model.value(self.obs, self.states, self.dones)
         # ideal model prediction
         sp_obs = mb_obs.copy()
-        sp_obs.append(self.obs.copy())
+        #sp_obs.append(self.obs.copy())
+        sp_obs = np.append(sp_obs, [self.obs.copy()], axis=0)
         sp_states.append(self.state)
-        sp_values = self.ideal_pred(sp_states, sp_obs, self.env.envs[0].env.env.spec.id, self.model.act_model)
         if self.config.img_switch:
+            sp_values = self.ideal_pred(sp_states, sp_obs, self.env.envs[0].env.env.spec.id, self.model.act_model)
             last_values = sp_values[-1]
+            mb_old_values = mb_values.copy()
             mb_values = sp_values[:-1]
         #discount/bootstrap off value fn
         mb_returns = np.zeros_like(mb_rewards)
@@ -67,6 +69,8 @@ class Runner(object):
             delta = mb_rewards[t] + self.gamma * nextvalues * nextnonterminal - mb_values[t]
             mb_advs[t] = lastgaelam = delta + self.gamma * self.lam * nextnonterminal * lastgaelam
         mb_returns = mb_advs + mb_values
+        if self.config.img_switch:
+            mb_values = mb_old_values
         return (*map(sf01, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs)),
             mb_states, epinfos)
         # obs, returns, masks, actions, values, neglogpacs, states = runner.run()
@@ -79,20 +83,23 @@ class Runner(object):
             # mean of many trials
             vals = []
             for j in range(self.config.img_trials):
-                env.set_state(*(states[i]))
+                env.reset()
+                env.env.set_state(*(states[i]))
                 obs = obses[i]
                 val = v = k = 0
                 # gamma discounted reward.
                 for k in range(self.config.img_n_steps):
                     a, v, _, _ = act_model.step(obs)
-                    obs, r, d, _ = env.step(a)
+                    obs, r, d, _ = env.step(a[0])
+                    obs = [obs]
                     val += r * self.config.gamma ** k
                     if d:
-                        val -= v ** k
+                        val -= v * self.config.gamma ** k
                         break
-                val += v ** k
+                val += v * self.config.gamma ** (k + 1)
                 vals.append(val)
-            value_ip.append(np.mean(vals))
+            value_ip.append([np.mean(vals)])
+        env.close()
         return np.asarray(value_ip)
 
 

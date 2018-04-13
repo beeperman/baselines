@@ -44,7 +44,7 @@ def main():
     args = arg_parser_config()
     logger.configure(args.log_directory)
     # copy the config
-    shutil.copy2(args.config_name. args.log_directory)
+    shutil.copy2(args.config_file, args.log_directory)
     train(args.env, seed=args.seed, config=args)
 
 def arg_parser_config():

@@ -12,7 +12,11 @@ config = {
 
     'seed': 1,
     'total_timesteps': 1e7,
-    'vf_coef': 0.5,
+    'vf_coef': 0.05,
+
+    'lambda': 0.95,
 
     'img_switch': True,
+    'img_trials': 10,
+    'img_n_steps': 2,
 }
